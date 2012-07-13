@@ -38,6 +38,7 @@ function _removeDataFromSelectedObject(datakey){
 	for(var j=0;j<selectedFeaturesObj.features.length;j++){
 		sitem = selectedFeaturesObj.features[j].properties.datakey;
 		if(datakey == sitem) {
+			//alert(datakey+'/'+sitem+'/'+(datakey == sitem));
 			selectedFeaturesObj.features.splice(j,1);
 			break;
 		}
@@ -214,7 +215,8 @@ function _searchContents(){
 	if(cropCategory){
 		var dirtyFlg = false;
 		// crop field
-		var crop = $('#crop option:selected').text();
+		var crop = $('#crop option:selected').val();
+
 		if(crop != '') {
 			optionValueArray.options[1].Child[0].Crop = true;
 			optionValueArray.options[1].Child[0].Fvalue = crop;
@@ -301,6 +303,27 @@ function remove_selected_search_result(){
 	});	
 	if(isUpdated) updateSearchedItem();
 }
+function remove_all_search_result(){
+	var isUpdated = false;
+	$('#search_results_chkbox').find(':input').each(function(){
+		switch(this.type){
+			case 'checkbox': 
+				{	
+					var chkboxId = $(this).attr('id');//ex) itemDatakey+'_li_chkbox'
+					var leftLidId = _getSearchItemLeftLiIDFromChkboxId(chkboxId);	
+					var rightLidId = _getSearchItemRightLiIDFromChkboxId(chkboxId);
+					var datakey = _getSearchItemDatakeyFromChkboxId(chkboxId);
+					//remove ui
+					$('#'+leftLidId).remove();//remove li of checkbox
+					$('#'+rightLidId).remove();//remove li of item			
+					//remove item	
+					_removeDataFromSelectedObject(datakey);
+					isUpdated = true;
+				}
+		}	
+	});	
+	if(isUpdated) updateSearchedItem();
+}
 function exeAddSelectionsToQueue(){
 	var datakeys = [];
 	$('#search_results_chkbox').find(':input').each(function(){
@@ -320,8 +343,10 @@ function exeAddSelectionsToQueue(){
 	if(itemnumber>0){
 		// remove from list
 		remove_selected_search_result();	
-		// update datacart item
+		// update map of datacart item
 		updateDataCartItem();
+		// update datacart item
+		updateDatacartList();
 	}
 }
 
