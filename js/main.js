@@ -1,12 +1,4 @@
-var terrain = L
-	.tileLayer(
-		'http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
-		{
-		    attribution : 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community',
-		    maxZoom : 12,
-		    minZoom : 2
-		}), natgeo = L
-	.tileLayer(
+var natgeo = L.tileLayer(
 		'http://services.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}',
 		{
 		    attribution : 'Tiles &copy; Esri &mdash; Source: US National Park Service',
@@ -17,15 +9,14 @@ var terrain = L
 var map = L.map('map', {
     center : new L.LatLng(0, 0),
     zoom : 2,
-    layers : [ terrain, natgeo ],
+    layers : [ natgeo ],
     worldCopyJump : true
 });
+/** Layer control if necessary
 L.control.layers({
-    "Topography" : terrain,
     "Physical" : natgeo
-}).addTo(map);
-var markerLayer = L.layerGroup();
-markerLayer.addTo(map);
+}).addTo(map); */
+var markerLayer;
 
 $(document).ready(
 	function() {
@@ -40,7 +31,10 @@ $(document).ready(
 	    }
 
 	    function queryCrop(currentCrop) {
-		markerLayer.clearLayers();
+		var markers = [];
+		if (markerLayer) {
+		    map.removeLayer(markerLayer);
+		}
 		$.getJSON('http://api.agmip.org/ace/1/query/?callback=?&crid='
 			+ currentCrop, function(data) {
 		    var collapsedJSON = {};
@@ -60,7 +54,7 @@ $(document).ready(
 			}
 		    });
 		    $.each(collapsedJSON, function(i, l) {
-			markerLayer.addLayer(L.marker(l['loc']).bindPopup(
+			markers.push(new L.marker(l['loc']).bindPopup(
 				"<strong>Number of experiments:</strong> "
 					+ l.count + '<br>Lat: ' + l.loc.lat
 					+ '<br>Lon: ' + l.loc.lng + '<hr>'
@@ -71,6 +65,9 @@ $(document).ready(
 				}));
 		    });
 		    map.fitWorld();
+		    markerLayer = new L.MarkerClusterGroup();
+		    markerLayer.addLayers(markers);
+		    map.addLayer(markerLayer);
 		});
 	    }
 
