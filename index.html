@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>ACE Demo</title>
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.5/leaflet.css" />
+    <link rel="stylesheet" href="css/main.css" />
+    <!--[if lte IE 8]>
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.5/leaflet.ie.css" />
+    <![endif]-->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script src="http://cdn.leafletjs.com/leaflet-0.5/leaflet.js"></script>
+  </head>
+  <body>
+    <h1>AgMIP ACE Database Interface Demo</h1>
+    <div id="map"></div>
+    <div id="search-panel">
+      <select id="crop">
+        <option value="MAZ" selected>Maize</option>
+        <option value="WHB">Bread Wheat</option>
+      </select>
+      <div id="status"></div>
+    </div>
+    <script>
+      var terrain = L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community',
+      maxZoom: 12,
+      minZoom: 2}),
+      natgeo = L.tileLayer('http://services.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles &copy; Esri &mdash; Source: US National Park Service',
+      maxZoom: 12,
+      minZoom: 2});
+
+      var map = L.map('map', {
+      center: new L.LatLng(0,0),
+      zoom: 2,
+      layers: [terrain, natgeo],
+      worldCopyJump: true
+      });
+      L.control.layers({"Topography":terrain, "Physical":natgeo,}).addTo(map);
+      var markerLayer = L.layerGroup();
+      markerLayer.addTo(map);
+
+      $(document).ready(function(){
+
+        function populateDetails(details) {
+          var s = '';
+          $.each(details, function(i, d) {
+            s = s + 'Name: '+d.exname+'<br>'+
+            'Planting Date: '+d.pdate+'<hr>';
+          });
+          return s;
+        }
+
+      function queryCrop(currentCrop) {
+        var searchResults = [];
+        markerLayer.clearLayers();
+        $.getJSON('http://api.agmip.org/ace/1/query/?callback=?&crid='+currentCrop, function(data){
+          var collapsedJSON = {};
+          $('#status').html('Found '+data.length+' results');
+          $.each(data, function(i, d) {
+            var ll = new L.LatLng(parseFloat(d.fl_lat), parseFloat(d['fl_long']));
+            if (collapsedJSON[ll] == undefined) {
+              collapsedJSON[ll] = {};
+              collapsedJSON[ll]['count'] = 1;
+              collapsedJSON[ll]['loc'] = ll;
+              collapsedJSON[ll]['details'] = [];
+              collapsedJSON[ll]['details'].push(d);
+              } else {
+              collapsedJSON[ll]['count']++;
+              collapsedJSON[ll]['details'].push(d);
+            }
+          });
+          $.each(collapsedJSON, function(i, l) {
+            markerLayer.addLayer(L.marker(l['loc']).bindPopup("<strong>Number of experiments:</strong> "+l.count+'<br>Lat: '+l.loc.lat+'<br>Lon: '+l.loc.lng+'<hr>'+populateDetails(l.details), 
+            {minWidth: 200, maxWidth: 450, maxHeight:125}));
+          });
+          map.fitWorld();
+        });
+      }
+
+      queryCrop($('#crop option:selected').val());
+
+      $('#crop').on('change', function(e){
+        queryCrop($('option:selected', this).val());
+      });
+    });
+  </script>
+</body>
+</html>
+
