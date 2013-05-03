@@ -15,27 +15,37 @@
  <!--[if lt IE 8]>
    <link rel="stylesheet" href="css/blueprint/ie.css" type="text/css" media="screen, projection">
  <![endif]-->
+ <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" />
  <link rel="stylesheet" href="css/main.css" />
 
  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+ <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"><</script>
  <script src="http://cdn.leafletjs.com/leaflet-0.5/leaflet.js"></script>
  <script src="js/leaflet.markercluster.js"></script>
 </head>
 <body>
  <div class="container">
  <div class="span-24">
-  <h1>AgMIP ACE Database Interface Demo</h1>
+  <h1>AgMIP Crop Modeling Database (DEMO)</h1>
   </div>
   <div id="map-container" class="span-18">
    <div id="map"></div>
   </div>
   <div id="search-panel" class="span-6 last">
-   <select id="crop">
-    <option value="MAZ" selected>Maize</option>
-    <option value="WHB">Bread Wheat</option>
+    <h3>Search</h3>
+    <div>
+    <label for="crop-search">Crop:</label>
+    <select id="crop-search">
    </select>
+   <div id="submit"><input type="submit" value="Search" id="search" /></div>
+   </div>
+   <h3>Location Results:</h3>
+   <div>
    <div id="status"></div>
+   <div id="search-results"></div>
+   </div>
   </div>
+  
   <div class="span-24">
   </div>
  </div>

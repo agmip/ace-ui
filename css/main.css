@@ -2,3 +2,15 @@
 	border: 1px solid #777;
 	height: 500px;
 }
+
+#search-panel {
+	height: 500px;
+}
+
+#search-options {
+	height: 300px;
+}
+
+#search-results {
+	height: 400px;
+}
