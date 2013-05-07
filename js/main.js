@@ -1,13 +1,14 @@
 $(document).ready(function() {
-   var natgeo = L.tileLayer('http://services.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}', {
-		    attribution : 'Tiles &copy; Esri &mdash; Source: US National Park Service',
-		    maxZoom : 12,
-		    minZoom : 2
+   var natgeo = L.tileLayer('http://otile{s}.mqcdn.com/tiles/1.0.0/map/{z}/{x}/{y}.jpeg', {
+		    attribution : '',
+		    maxZoom : 16,
+		    minZoom : 1,
+		    subdomains: '1234'
 		});
 
     var map = L.map('map', {
         center : new L.LatLng(0, 0),
-        zoom : 2,
+        zoom : 1,
         layers : [ natgeo ],
         worldCopyJump : true
     });
@@ -34,7 +35,11 @@ $(document).ready(function() {
 	    map.removeLayer(markerLayer);
 	}
 	// TODO: Convert this to a pure $.ajax() to allow for cache
-	$.getJSON('http://api.agmip.org/ace/1/query/?callback=?&crid='+currentCrop, function(data) {
+	$.ajax('http://api.agmip.org/ace/1/query/?callback=?&crid='+currentCrop, { 
+		dataType: 'jsonp',
+		beforeSend: function() { $('#query-spinner').show();},
+		complete: function() { $('#query-spinner').hide();},
+		success: function(data) {
 		    var collapsedJSON = {};
 		    $('#status').html('Found ' + data.length + ' results');
 		    $.each(data, function(i, d) {
@@ -64,11 +69,30 @@ $(document).ready(function() {
 			   $('#search-panel').accordion('option', 'active', 1);
 			}));
 		    });
+		    
 		    map.fitWorld();
 		    markerLayer = new L.MarkerClusterGroup();
 		    markerLayer.addLayers(markers);
 		    map.addLayer(markerLayer);
-		});
+		    (function(markers, data) {
+			    var len = markers.length;
+			    for(var index=0; index < len; index++) {
+				var popup;
+				markers[index].on('mouseover', function(e) {
+				    var ll = this.getLatLng();
+				    popup = L.popup({offset: new L.Point(0,-33)}).setLatLng(ll).setContent('There are '+data[ll].details.length+' data entries here.').openOn(map);
+				});
+				markers[index].on('mouseout', function(e) {
+				    map.closePopup();
+				});
+				markers[index].on('dblclick', function(e) {
+				    map.panTo(this.getLatLng());
+				    map.zoomIn(3);
+				});
+			    }
+			})(markers, collapsedJSON);
+		}});
+	
     }
     
     function initSearch() {
@@ -83,6 +107,7 @@ $(document).ready(function() {
     initSearch();
     //queryCrop($('#crop-search option:selected').val());
     $('#search-panel').accordion();
+    $('#tabs').tabs();
     $('#search').on('click', function(e) {
 	$('#status').html('');
 	$('#search-results').html('');

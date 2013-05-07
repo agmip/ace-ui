@@ -1,16 +1,25 @@
 #map {
 	border: 1px solid #777;
-	height: 500px;
+	height: 400px;
 }
 
-#search-panel {
-	height: 500px;
+#tabs {
+	height: 400px;
 }
 
 #search-options {
-	height: 300px;
+	height: 200px;
 }
 
 #search-results {
-	height: 400px;
+	height: 200px;
+}
+
+#status {
+	color: #000;
+	font-size: .75em;
+}
+
+#query-spinner {
+	display:none;
 }
