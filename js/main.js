@@ -13,10 +13,8 @@ $(document).ready(function() {
         worldCopyJump : true
     });
     var markerLayer;
-     /** Uncomment for layer controls
-     * L.control.layers({ "Physical" : natgeo
-     * }).addTo(map);
-     */
+    var server='http://localhost:8080/';
+   
     
     function populateDetails(details) {
 	var s = '';
@@ -34,13 +32,18 @@ $(document).ready(function() {
 	if (markerLayer) {
 	    map.removeLayer(markerLayer);
 	}
-	// TODO: Convert this to a pure $.ajax() to allow for cache
-	$.ajax('http://api.agmip.org/ace/1/query/?callback=?&crid='+currentCrop, { 
+	var query = '&crid='+currentCrop;
+	if ($('#pdate-year').val() != "") {
+	    query += '&pdate_year='+($('#pdate-year').val());
+	}
+	console.log('Query: ',query);
+	$.ajax(server+'ace/1/query/beta?callback=?'+query, { 
 		dataType: 'jsonp',
 		beforeSend: function() { $('#query-spinner').show();},
 		complete: function() { $('#query-spinner').hide();},
 		success: function(data) {
 		    var collapsedJSON = {};
+		    console.log(data);
 		    $('#status').html('Found ' + data.length + ' results');
 		    $.each(data, function(i, d) {
 			var ll = new L.LatLng(parseFloat(d.fl_lat),
@@ -96,7 +99,7 @@ $(document).ready(function() {
     }
     
     function initSearch() {
-	$.getJSON('http://api.agmip.org/ace/1/cache/crop?callback=?', function(data) {
+	$.getJSON(server+'ace/1/cache/crop?callback=?', function(data) {
 	   $.each(data, function(value, name){
 	       $('#crop-search').append('<option value="'+value+'">'+name+'</option>');
 	   });
@@ -105,7 +108,6 @@ $(document).ready(function() {
 
     
     initSearch();
-    //queryCrop($('#crop-search option:selected').val());
     $('#search-panel').accordion();
     $('#tabs').tabs();
     $('#search').on('click', function(e) {
